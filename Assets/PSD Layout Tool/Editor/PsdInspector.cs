@@ -48,6 +48,7 @@
             }
         }
 
+    
         /// <summary>
         /// Draws the Inspector GUI for the TextureImporter.
         /// Normal Texture files should appear as they normally do, however PSD files will have additional items.
@@ -62,7 +63,7 @@
                 if (assetPath.EndsWith(".psd"))
                 {
                     GUILayout.Label("<b>PSD Layout Tool</b>", guiStyle, GUILayout.Height(23));
-
+                     
                     GUIContent maximumDepthLabel = new GUIContent("Maximum Depth", "The Z value of the far back plane. The PSD will be laid out from here to 0.");
                     PsdImporter.MaximumDepth = EditorGUILayout.FloatField(maximumDepthLabel, PsdImporter.MaximumDepth);
 
@@ -71,6 +72,10 @@
 
                     GUIContent useUnityUILabel = new GUIContent("Use Unity UI", "Create Unity UI elements instead of \"normal\" GameObjects.");
                     PsdImporter.UseUnityUI = EditorGUILayout.Toggle(useUnityUILabel, PsdImporter.UseUnityUI);
+
+                    //set ui width and height;       
+                    GUIContent screenSize = new GUIContent("screenResolution", "set canvas width and height");
+                    PsdImporter.ScreenResolution = EditorGUILayout.Vector2Field(screenSize, PsdImporter.ScreenResolution); 
 
                     // draw our custom buttons for PSD files
                     if (GUILayout.Button("Export Layers as Textures"))
@@ -109,7 +114,6 @@
             // Unfortunately we cant hide the ImportedObject section because the interal InspectorWindow checks via
             // "if (editor is AssetImporterEditor)" and all flags that this check sets are method local variables
             // so aside from direct patching UnityEditor.dll, reflection cannot be used here.
-
             // Therefore we just move the ImportedObject section out of view
             ////GUILayout.Space(2048);
         }

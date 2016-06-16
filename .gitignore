@@ -22,3 +22,5 @@ Temp/
 # Ignore the StyleCop files
 Settings.StyleCop
 StyleCop.Cache
+
+*.orig

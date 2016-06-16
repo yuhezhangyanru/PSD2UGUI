@@ -49,8 +49,8 @@
         /// </summary>
         static PsdImporter()
         {
-            MaximumDepth = 10;
-            PixelsToUnits = 100;
+            MaximumDepth = 1;
+            PixelsToUnits = 1;
         }
 
         /// <summary>
@@ -66,7 +66,13 @@
         /// <summary>
         /// Gets or sets a value indicating whether to use the Unity 4.6+ UI system or not.
         /// </summary>
-        public static bool UseUnityUI { get; set; }
+        public static bool UseUnityUI
+        {
+            get { return _useUnityUI; }
+            set { _useUnityUI = value; }
+        }
+
+        private static bool _useUnityUI = true;
 
         /// <summary>
         /// Gets or sets a value indicating whether the import process should create <see cref="GameObject"/>s in the scene.
@@ -91,7 +97,12 @@
         /// <summary>
         /// Gets or sets the Unity 4.6+ UI canvas.
         /// </summary>
-        private static GameObject Canvas { get; set; }
+        private static GameObject canvasObj { get; set; }
+
+        /// <summary>
+        /// full ui size
+        /// </summary>
+        public static Vector2 ScreenResolution = new Vector2(1280, 760);
 
         /// <summary>
         /// Gets or sets the current <see cref="PsdFile"/> that is being imported.
@@ -141,8 +152,8 @@
             string fullPath = Path.Combine(GetFullProjectPath(), asset.Replace('\\', '/'));
 
             PsdFile psd = new PsdFile(fullPath);
-            CanvasSize = new Vector2(psd.Width, psd.Height);
-
+            CanvasSize = ScreenResolution;// new Vector2(psd.Width, psd.Height);
+            Debug.Log(Time.time + "update canvasSize as UI size=" + CanvasSize);
             // Set the depth step based on the layer count.  If there are no layers, default to 0.1f.
             depthStep = psd.Layers.Count != 0 ? MaximumDepth / psd.Layers.Count : 0.1f;
 
@@ -152,7 +163,7 @@
 
             currentPath = GetFullProjectPath() + "Assets";
             currentPath = Path.Combine(currentPath, PsdName);
-            Directory.CreateDirectory(currentPath);
+            createDic(currentPath);
 
             if (LayoutInScene || CreatePrefab)
             {
@@ -160,12 +171,13 @@
                 {
                     CreateUIEventSystem();
                     CreateUICanvas();
-                    rootPsdGameObject = Canvas;
                 }
-                else
-                {
-                    rootPsdGameObject = new GameObject(PsdName);
-                }
+
+                //create ui Root
+                rootPsdGameObject = CreateObj(PsdName);
+                updateParent(rootPsdGameObject, canvasObj);
+                Vector3 rootPos = Vector3.zero;
+                updateRectPosition(rootPsdGameObject, rootPos,true);
 
                 currentGroupGameObject = rootPsdGameObject;
             }
@@ -383,8 +395,8 @@
                 string oldPath = currentPath;
                 GameObject oldGroupObject = currentGroupGameObject;
 
-                currentPath = Path.Combine(currentPath, layer.Name.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)[0]);
-                Directory.CreateDirectory(currentPath);
+  //              currentPath = Path.Combine(currentPath, layer.Name.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries)[0]);
+                createDic(currentPath);
 
                 if (UseUnityUI)
                 {
@@ -403,14 +415,20 @@
                 // it is a "normal" folder layer that contains children layers
                 string oldPath = currentPath;
                 GameObject oldGroupObject = currentGroupGameObject;
-
-                currentPath = Path.Combine(currentPath, layer.Name);
-                Directory.CreateDirectory(currentPath);
+                 
+         //       currentPath = Path.Combine(currentPath, layer.Name);
+                createDic(currentPath);
 
                 if (LayoutInScene || CreatePrefab)
                 {
-                    currentGroupGameObject = new GameObject(layer.Name);
+                    currentGroupGameObject = CreateObj(layer.Name);
+
+#if UNITY_5
+                    updateParent(currentGroupGameObject, oldGroupObject);
+#else
                     currentGroupGameObject.transform.parent = oldGroupObject.transform;
+#endif
+
                 }
 
                 ExportTree(layer.Children);
@@ -418,6 +436,11 @@
                 currentPath = oldPath;
                 currentGroupGameObject = oldGroupObject;
             }
+        }
+
+        private static void createDic(string path)
+        {
+            Directory.CreateDirectory(path);
         }
 
         /// <summary>
@@ -597,8 +620,8 @@
             float width = layer.Rect.width / PixelsToUnits;
             float height = layer.Rect.height / PixelsToUnits;
 
-            GameObject gameObject = new GameObject(layer.Name);
-            gameObject.transform.position = new Vector3(x + (width / 2), y - (height / 2), currentDepth);
+            GameObject gameObject = CreateObj(layer.Name);
+            updateRectPosition(gameObject, new Vector3(x + (width / 2), y - (height / 2), currentDepth));
             gameObject.transform.parent = currentGroupGameObject.transform;
 
             currentDepth -= depthStep;
@@ -642,9 +665,8 @@
             y = (CanvasSize.y / PixelsToUnits) - y;
             float width = layer.Rect.width / PixelsToUnits;
             float height = layer.Rect.height / PixelsToUnits;
-
-            GameObject gameObject = new GameObject(layer.Name);
-            gameObject.transform.position = new Vector3(x + (width / 2), y - (height / 2), currentDepth);
+            GameObject gameObject = CreateObj(layer.Name);
+            updateRectPosition(gameObject, new Vector3(x + (width / 2), y - (height / 2), currentDepth));
             gameObject.transform.parent = currentGroupGameObject.transform;
 
             currentDepth -= depthStep;
@@ -652,6 +674,23 @@
             SpriteRenderer spriteRenderer = gameObject.AddComponent<SpriteRenderer>();
             spriteRenderer.sprite = CreateSprite(layer);
             return spriteRenderer;
+        }
+
+        private static void updateRectPosition(GameObject rect, Vector3 position,bool isRoot=false)
+        {
+            if(isRoot)
+                position += new Vector3(ScreenResolution.x/2f, ScreenResolution.y/2f, 0);
+
+            rect.GetComponent<RectTransform>().anchoredPosition3D = position;
+            Debug.Log(Time.time + ",update rect=" + rect.name + ",position=" + position);
+        }
+
+        private static GameObject CreateObj(string objName)
+        {
+            GameObject obj =  new GameObject(objName);
+            obj.AddComponent<RectTransform>();
+            //Debug.Log(Time.time + "create objname=" + objName);
+            return obj;//
         }
 
         /// <summary>
@@ -769,9 +808,9 @@
             return clip;
         }
 
-        #endregion
+#endregion
 
-        #region Unity UI
+#region Unity UI
         /// <summary>
         /// Creates the Unity UI event system game object that handles all input.
         /// </summary>
@@ -779,32 +818,54 @@
         {
             if (!GameObject.Find("EventSystem"))
             {
-                GameObject gameObject = new GameObject("EventSystem");
+                GameObject gameObject = CreateObj("EventSystem");
                 gameObject.AddComponent<EventSystem>();
                 gameObject.AddComponent<StandaloneInputModule>();
-                gameObject.AddComponent<TouchInputModule>();
+                //gameObject.AddComponent<TouchInputModule>();
             }
         }
 
         /// <summary>
-        /// Creates a Unity UI <see cref="Canvas"/>.
+        /// Creates a Unity UI <see cref="canvasObj"/>.
         /// </summary>
         private static void CreateUICanvas()
         {
-            Canvas = new GameObject(PsdName);
+            //CanvasComRoot;
+            //Canvas = CreateObj(PsdName);
+            if (GameObject.Find("Canvas") != null)
+            {
+                canvasObj = GameObject.Find("Canvas");
+            }
+            else
+            {
+                canvasObj = CreateObj("Canvas");
+            }
 
-            Canvas canvas = Canvas.AddComponent<Canvas>();
+            Canvas canvas = canvasObj.GetComponent<Canvas>();
+            if (canvas == null)
+                canvas = canvasObj.AddComponent<Canvas>();
+
+            CanvasScaler scaler = canvasObj.GetComponent<CanvasScaler>();
+            if (scaler == null)
+                scaler = canvasObj.AddComponent<CanvasScaler>();
+            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
+            scaler.referenceResolution = ScreenResolution;
+
+#if UNITY_5
+            canvas.renderMode = RenderMode.ScreenSpaceOverlay;
+#else
             canvas.renderMode = RenderMode.WorldSpace;
+#endif
 
-            RectTransform transform = Canvas.GetComponent<RectTransform>();
-            Vector2 scaledCanvasSize = new Vector2(CanvasSize.x / PixelsToUnits, CanvasSize.y / PixelsToUnits);
-            transform.sizeDelta = scaledCanvasSize;
+            RectTransform transform = canvasObj.GetComponent<RectTransform>();
+            updateRectSize(ref transform, CanvasSize.x / PixelsToUnits, CanvasSize.y / PixelsToUnits);
 
-            CanvasScaler scaler = Canvas.AddComponent<CanvasScaler>();
             scaler.dynamicPixelsPerUnit = PixelsToUnits;
             scaler.referencePixelsPerUnit = PixelsToUnits;
 
-            Canvas.AddComponent<GraphicRaycaster>();
+            GraphicRaycaster racaster = canvasObj.GetComponent<GraphicRaycaster>();
+            if (racaster == null)
+                racaster = canvasObj.AddComponent<GraphicRaycaster>();
         }
 
         /// <summary>
@@ -827,12 +888,18 @@
             float width = layer.Rect.width / PixelsToUnits;
             float height = layer.Rect.height / PixelsToUnits;
 
-            GameObject gameObject = new GameObject(layer.Name);
-            gameObject.transform.position = new Vector3(x + (width / 2), y - (height / 2), currentDepth);
+            GameObject gameObject = CreateObj(layer.Name);
+            updateRectPosition(gameObject, new Vector3(x + (width / 2), y - (height / 2), currentDepth));
+
+#if UNITY_5
+            updateParent(gameObject, currentGroupGameObject);
+#else
             gameObject.transform.parent = currentGroupGameObject.transform;
+#endif
 
             // if the current group object actually has a position (not a normal Photoshop folder layer), then offset the position accordingly
-            gameObject.transform.position = new Vector3(gameObject.transform.position.x + currentGroupGameObject.transform.position.x, gameObject.transform.position.y + currentGroupGameObject.transform.position.y, gameObject.transform.position.z);
+            updateRectPosition( gameObject,new Vector3(gameObject.transform.position.x + currentGroupGameObject.transform.position.x,
+                gameObject.transform.position.y + currentGroupGameObject.transform.position.y, gameObject.transform.position.z));
 
             currentDepth -= depthStep;
 
@@ -840,9 +907,15 @@
             image.sprite = CreateSprite(layer);
 
             RectTransform transform = gameObject.GetComponent<RectTransform>();
-            transform.sizeDelta = new Vector2(width, height);
+            updateRectSize(ref transform, width, height);
 
             return image;
+        }
+
+        private static void updateRectSize(ref RectTransform transform,float width, float height)
+        {
+            //Debug.Log(Time.time + ",update rect size tran="+transform.name+", with = " + width + ",height=" + height + ",PixelsToUnits=" + PixelsToUnits + ",pre=" + (width * PixelsToUnits));
+            transform.sizeDelta = new Vector2(width, height);
         }
 
         /// <summary>
@@ -866,9 +939,14 @@
             float width = layer.Rect.width / PixelsToUnits;
             float height = layer.Rect.height / PixelsToUnits;
 
-            GameObject gameObject = new GameObject(layer.Name);
-            gameObject.transform.position = new Vector3(x + (width / 2), y - (height / 2), currentDepth);
+            GameObject gameObject = CreateObj(layer.Name);
+            updateRectPosition(gameObject, new Vector3(x + (width / 2), y - (height / 2), currentDepth));
+
+#if UNITY_5
+            updateParent(gameObject, currentGroupGameObject);
+#else
             gameObject.transform.parent = currentGroupGameObject.transform;
+#endif 
 
             currentDepth -= depthStep;
 
@@ -877,6 +955,7 @@
             Text textUI = gameObject.AddComponent<Text>();
             textUI.text = layer.Text;
             textUI.font = font;
+            textUI.verticalOverflow = VerticalWrapMode.Overflow;
             textUI.rectTransform.sizeDelta = new Vector2(width, height);
 
             float fontSize = layer.FontSize / PixelsToUnits;
@@ -887,7 +966,9 @@
                 float scaleFactor = ceiling / fontSize;
                 textUI.fontSize = (int)ceiling;
                 textUI.rectTransform.sizeDelta *= scaleFactor;
-                textUI.rectTransform.localScale /= scaleFactor;
+
+                Debug.Log(Time.time + "set txt=" + textUI.name + ",scale=" + textUI.rectTransform.localScale / scaleFactor + ",factor=" + scaleFactor);
+                updateRectScale(textUI, textUI.rectTransform.localScale / scaleFactor);
             }
             else
             {
@@ -909,6 +990,17 @@
                     textUI.alignment = TextAnchor.MiddleCenter;
                     break;
             }
+        }
+
+        private static void updateParent(GameObject gameObject,GameObject father)
+        {
+            gameObject.transform.SetParent(father.transform);
+            gameObject.transform.localScale = Vector3.one;
+        }
+
+        private static void updateRectScale(Text textUI, Vector3 newScale)
+        {
+            textUI.rectTransform.localScale = newScale;
         }
 
         /// <summary>
@@ -986,10 +1078,11 @@
                     float width = child.Rect.width / PixelsToUnits;
                     float height = child.Rect.height / PixelsToUnits;
 
-                    image.gameObject.transform.position = new Vector3(x + (width / 2), y - (height / 2), currentDepth);
+                    Debug.Log(Time.time + ",canvasSize=" + CanvasSize + ",child rect.x=" + child.Rect.width + ",height=" + child.Rect.height);
+                    updateRectPosition(image.gameObject, new Vector3(x + (width / 2), y - (height / 2), currentDepth));
 
-                    RectTransform transform = image.gameObject.GetComponent<RectTransform>();
-                    transform.sizeDelta = new Vector2(width, height);
+                    RectTransform transform = image.GetComponent<RectTransform>();
+                    updateRectSize(ref transform, width, height);
 
                     button.targetGraphic = image;
                 }
@@ -1012,6 +1105,6 @@
                 }
             }
         }
-        #endregion
+#endregion
     }
 }

@@ -1163,7 +1163,7 @@
 
             Text textUI = gameObject.AddComponent<Text>();
 
-            showLog("update text=" + gameObject.name + ",set text=" + layer.Text);
+            //showLog("update text=" + gameObject.name + ",set text=" + layer.Text);
 
             textUI.text = layer.Text;
             textUI.font = font;

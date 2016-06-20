@@ -886,8 +886,9 @@
 
         private static void updateRectPosition(GameObject rect, Vector3 position, bool isRoot = false)
         {
-            rect .GetComponent<RectTransform>().anchoredPosition3D = position;
-            //Debug.Log(Time.time + ",update rect=" + rect.name + ",position=" + position + ",isRoot?" + isRoot + ",parentisRoot?" + ((rect.transform.parent == rootPsdGameObject.transform)));
+            rect.GetComponent<RectTransform>().anchoredPosition3D = position;
+            showLog(",update rect=" + rect.name + ",position=" + position + ",isRoot?" + isRoot +
+                ",parentisRoot?" + ((rect.transform.parent == rootPsdGameObject.transform)));
         }
 
         private static GameObject CreateObj(string objName)
@@ -1161,6 +1162,9 @@
             Font font = Resources.GetBuiltinResource<Font>(textFont);
 
             Text textUI = gameObject.AddComponent<Text>();
+
+            showLog("update text=" + gameObject.name + ",set text=" + layer.Text);
+
             textUI.text = layer.Text;
             textUI.font = font;
             textUI.verticalOverflow = VerticalWrapMode.Overflow;

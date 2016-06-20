@@ -75,7 +75,15 @@
 
                     //set ui width and height;       
                     GUIContent screenSize = new GUIContent("screenResolution", "set canvas width and height");
-                    PsdImporter.ScreenResolution = EditorGUILayout.Vector2Field(screenSize, PsdImporter.ScreenResolution); 
+                    PsdImporter.ScreenResolution = EditorGUILayout.Vector2Field(screenSize, PsdImporter.ScreenResolution);
+
+                    //set textFont
+                    GUIContent fontName = new GUIContent("fontName", "use font on UI");
+                    PsdImporter.textFont = EditorGUILayout.TextField(fontName, PsdImporter.textFont);
+
+                    //set fullScreenUI
+                    GUIContent useFullScreenUI = new GUIContent("useFullScreenUI", "useFullScreenUI");
+                    PsdImporter.fullScreenUI = EditorGUILayout.Toggle(useFullScreenUI, PsdImporter.fullScreenUI);
 
                     // draw our custom buttons for PSD files
                     if (GUILayout.Button("Export Layers as Textures"))
@@ -91,6 +99,11 @@
                     if (GUILayout.Button("Generate Prefab"))
                     {
                         PsdImporter.GeneratePrefab(assetPath);
+                    }
+
+                    if (GUILayout.Button("测试按钮"))
+                    {
+                        PsdImporter.TestClick();
                     }
 
                     GUILayout.Space(3);

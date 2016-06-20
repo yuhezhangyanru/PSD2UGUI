@@ -40,6 +40,11 @@
         /// </summary>
         private BitVector32 flags;
 
+        //public BitVector32 Flags
+        //{
+        //    get { return flags; }
+        //}
+
         /// <summary>
         /// Initializes a new instance of the <see cref="Layer"/> class using the provided reader containing the PSD file data.
         /// </summary>

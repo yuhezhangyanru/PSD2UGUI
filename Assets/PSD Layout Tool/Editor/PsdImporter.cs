@@ -19,8 +19,8 @@
     public static class PsdImporter
     {
 
-        ///注：
-        ///字符串常量 作为制作psd的关键字规范！ 
+        ///attention：
+        ///string const as psd layer name keyword!
         public const string BTN_HEAD = "btn_";              //按钮关键字
         public const string BTN_TAIL_HIGH = "_highlight";   //按钮高亮关键字
         public const string BTN_TAIL_DIS = "_disable";      //按钮禁用关键字

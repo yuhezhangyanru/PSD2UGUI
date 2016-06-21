@@ -136,7 +136,7 @@
                 if (_textFont == "")
                 {
                     _textFont = "Arial.ttf";
-                    Debug.Log(Time.time + ",force set font=" + _textFont);
+                    //Debug.Log(Time.time + ",force set font=" + _textFont);
                 }
                 return _textFont;
             }

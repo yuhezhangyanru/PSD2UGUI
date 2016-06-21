@@ -70,8 +70,8 @@
                     GUIContent pixelsToUnitsLabel = new GUIContent("Pixels to Unity Units", "The scale of the Sprite objects, in the number of pixels to Unity world units.");
                     PsdImporter.PixelsToUnits = EditorGUILayout.FloatField(pixelsToUnitsLabel, PsdImporter.PixelsToUnits);
 
-                    GUIContent useUnityUILabel = new GUIContent("Use Unity UI", "Create Unity UI elements instead of \"normal\" GameObjects.");
-                    PsdImporter.UseUnityUI = EditorGUILayout.Toggle(useUnityUILabel, PsdImporter.UseUnityUI);
+                    //GUIContent useUnityUILabel = new GUIContent("Use Unity UI", "Create Unity UI elements instead of \"normal\" GameObjects.");
+                    //PsdImporter.UseUnityUI = EditorGUILayout.Toggle(useUnityUILabel, PsdImporter.UseUnityUI);
 
                     //set ui width and height;       
                     GUIContent screenSize = new GUIContent("screenResolution", "set canvas width and height");

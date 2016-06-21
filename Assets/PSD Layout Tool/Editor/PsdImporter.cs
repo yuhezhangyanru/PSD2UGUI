@@ -13,7 +13,6 @@
     using UnityEngine.EventSystems;
     using UnityEngine.UI;
 
-
     /// <summary>
     /// Handles all of the importing for a PSD file (exporting textures, creating prefabs, etc).
     /// </summary>
@@ -21,13 +20,12 @@
     {
 
         ///注：
-        ///字符串常量 作为制作psd的关键字规范！
-        ///
-        /// 
-        /// 
-        public const string BTN_HEAD = "btn_"; //按钮关键字
-        public const string BTN_TAIL_HIGH = "_highlight";//按钮高亮关键字
-        public const string BTN_TAIL_DIS = "_disable";//按钮禁用关键字
+        ///字符串常量 作为制作psd的关键字规范！ 
+        public const string BTN_HEAD = "btn_";              //按钮关键字
+        public const string BTN_TAIL_HIGH = "_highlight";   //按钮高亮关键字
+        public const string BTN_TAIL_DIS = "_disable";      //按钮禁用关键字
+
+        public const string TEXT_HEAD = "text_";             //文本关键字
 
         public const string PUBLIC_IMG_HEAD = "public_";//公用资源图
 
@@ -887,16 +885,15 @@
         private static void updateRectPosition(GameObject rect, Vector3 position, bool isRoot = false)
         {
             rect.GetComponent<RectTransform>().anchoredPosition3D = position;
-            showLog(",update rect=" + rect.name + ",position=" + position + ",isRoot?" + isRoot +
-                ",parentisRoot?" + ((rect.transform.parent == rootPsdGameObject.transform)));
+            //showLog(",update rect=" + rect.name + ",position=" + position + ",isRoot?" + isRoot +
+            //    ",parentisRoot?" + ((rect.transform.parent == rootPsdGameObject.transform)));
         }
 
         private static GameObject CreateObj(string objName)
         {
             GameObject obj = new GameObject(objName);
             obj.AddComponent<RectTransform>();
-            //Debug.Log(Time.time + "create objname=" + objName);
-            return obj;//
+            return obj;
         }
 
         /// <summary>
